@@ -20,7 +20,7 @@
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     background: #fff; color: #111;
   }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 28px 20px 90px; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 28px 20px calc(110px + env(safe-area-inset-bottom)); }
   header { margin-bottom: 8px; }
   h1 { font-size: 21px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 2px; }
   .progress { font-size: 14px; color: #999; margin: 0; }
@@ -28,10 +28,14 @@
   #dzis { color: #52749a; font-weight: 600; }
   #seria { color: #777; font-weight: 600; }
   .losuj {
-    display: inline-block; margin-top: 14px;
-    font: inherit; font-size: 14px; color: #52749a;
-    background: none; border: 1px solid #ccd9e4; border-radius: 999px;
-    padding: 8px 16px; cursor: pointer;
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 10;
+    font: inherit; font-size: 15px; font-weight: 500; color: #52749a;
+    background: rgba(255, 255, 255, 0.85);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border: 1px solid #ccd9e4; border-radius: 999px;
+    padding: 11px 26px; cursor: pointer; white-space: nowrap;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
     -webkit-tap-highlight-color: transparent;
   }
   .losuj:active { background: #f1f5f9; }
@@ -84,7 +88,11 @@
     details.dzis .t::after { color: #8aa8c7; }
     .przejrz { color: #8aa8c7; border-color: #2b3a49; }
     details.dzis .przejrz { background: #131a21; border-color: #131a21; }
-    .losuj { color: #8aa8c7; border-color: #2b3a49; }
+    .losuj {
+      color: #8aa8c7; border-color: #2b3a49;
+      background: rgba(15, 15, 15, 0.85);
+      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+    }
     .losuj:active { background: #131a21; }
     h2.sec { color: #5c6b7d; }
     details.q { border-bottom-color: #1c1c1c; }
@@ -103,7 +111,6 @@
   <header>
     <h1>Pytania na obronę</h1>
     <p class="progress">Umiem: <span id="cnt">0</span> / 50 &nbsp;·&nbsp; Dziś: <span id="dzis">0</span> &nbsp;·&nbsp; Seria: <span id="seria">0 dni</span></p>
-    <button class="losuj" id="losuj" type="button">Losuj pytanie</button>
   </header>
 <h2 class='sec'>Literatura angielska i amerykańska</h2>
 <details class='q' id='q1' data-num='1'><summary><span class='num'>1</span><span class='t'>Angielska literatura renesansowa. Dramat elżbietański.</span><span class='dot' title='umiem'></span></summary><div class='a'><p>Renesans w Anglii to mniej więcej XVI i początek XVII wieku, czyli czasy królowej Elżbiety I. Ludzie na nowo zachwycili się antykiem i samym człowiekiem — to się nazywa humanizm. W poezji pojawia się wtedy sonet. Najważniejsze jest jednak to, że to złoty wiek teatru.</p><ul><li>Powstają pierwsze stałe teatry w Londynie, m.in. słynny The Globe. Na sztuki chodzili wszyscy — od biedoty po szlachtę.</li><li>Najważniejszy autor to oczywiście William Shakespeare: pisał tragedie (Hamlet, Makbet, Otello), komedie i kroniki historyczne.</li><li>Inni ważni: Christopher Marlowe (Doctor Faustus) i Thomas Kyd (twórca tzw. tragedii zemsty).</li><li>Cechy dramatu: pisany białym wierszem (rytmiczny, ale bez rymów), monolog bohatera (soliloquy), mieszanie tragizmu z humorem.</li></ul><p class='zap'><b>Zapamiętaj:</b> Elżbieta I + Szekspir + teatr The Globe = epoka elżbietańska.</p><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
@@ -163,6 +170,7 @@
 <details class='q' id='q18' data-num='18'><summary><span class='num'>18</span><span class='t'>Podstawowe narzędzia komunikacji werbalnej i niewerbalnej.</span><span class='dot' title='umiem'></span></summary><div class='a'><p>Komunikacja to przekazywanie informacji między ludźmi. Dzieli się na werbalną (słowa) i niewerbalną (wszystko poza słowami). Duża część przekazu to właśnie mowa ciała.</p><ul><li>Werbalna ustna: rozmowa, prezentacja, telefon. Werbalna pisemna: e-mail, raport, SMS.</li><li>W mowie liczy się też sposób mówienia: ton, głośność, tempo — to tzw. parajęzyk.</li><li>Niewerbalna: mimika (wyraz twarzy), gesty, postawa ciała, kontakt wzrokowy, dystans od rozmówcy, wygląd.</li><li>Sygnały niewerbalne mogą potwierdzać słowa albo im zaprzeczać — gdy się kłócą, ludzie wierzą raczej mowie ciała.</li></ul><p class='zap'><b>Zapamiętaj:</b> Werbalna = słowa (mowa i pismo). Niewerbalna = mimika, gesty, postawa, kontakt wzrokowy, ton głosu.</p><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
 <details class='q' id='q32' data-num='32'><summary><span class='num'>32</span><span class='t'>Style zarządzania.</span><span class='dot' title='umiem'></span></summary><div class='a'><p>Styl zarządzania to sposób, w jaki szef kieruje ludźmi i podejmuje decyzje. Klasyczny podział (Kurt Lewin) wyróżnia trzy style.</p><ul><li>Autokratyczny — szef decyduje sam i wydaje polecenia, nie pyta zespołu. Decyzje szybkie, ale ludzie bierni i niezadowoleni. Sprawdza się w kryzysie.</li><li>Demokratyczny — szef konsultuje się z zespołem, decyzje zapadają wspólnie. Ludzie bardziej zaangażowani, ale decyzje wolniejsze. Zwykle najskuteczniejszy.</li><li>Liberalny (leseferystyczny) — szef zostawia zespołowi wolną rękę i prawie nie ingeruje. Działa tylko przy samodzielnych specjalistach.</li><li>Dobry menedżer dopasowuje styl do sytuacji i zespołu (podejście sytuacyjne).</li></ul><p class='zap'><b>Zapamiętaj:</b> Trzy style (Lewin): autokratyczny (sam decyduję), demokratyczny (decydujemy razem), liberalny (róbcie sami).</p><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
 </div>
+<button class="losuj" id="losuj" type="button">Losuj pytanie</button>
 <script>
 (function () {
   // Postęp trzymany równolegle w localStorage, IndexedDB i haszu URL —
