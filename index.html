@@ -27,14 +27,17 @@
   #cnt { color: #6c8c6c; font-weight: 600; }
   #dzis { color: #52749a; font-weight: 600; }
   #seria { color: #777; font-weight: 600; }
-  .losuj {
+  .fabs {
     position: fixed; left: 50%; transform: translateX(-50%);
     bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 10;
+    display: flex; gap: 10px; width: max-content;
+  }
+  .losuj {
     font: inherit; font-size: 15px; font-weight: 500; color: #52749a;
     background: rgba(255, 255, 255, 0.85);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     border: 1px solid #ccd9e4; border-radius: 999px;
-    padding: 11px 26px; cursor: pointer; white-space: nowrap;
+    padding: 11px 22px; cursor: pointer; white-space: nowrap;
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
     -webkit-tap-highlight-color: transparent;
   }
@@ -102,6 +105,18 @@
   .kal-d.ma { background: #eef3f8; }
   .kal-d.ma .dn { color: #6b7f92; }
   .kal-d.ter { box-shadow: inset 0 0 0 1.5px #ccd9e4; }
+  .quizbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4px 0 2px; }
+  .qhint { font-size: 13.5px; color: #999; width: 100%; margin: 0 0 4px; }
+  .qbtn {
+    font: inherit; font-size: 13.5px; color: #52749a;
+    background: none; border: 1px solid #ccd9e4; border-radius: 999px;
+    padding: 7px 14px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .qbtn.dobrze { color: #6c8c6c; border-color: #cfdccf; }
+  .qbtn.powt { color: #a5766a; border-color: #e2d1cb; }
+  details.qz0 .a > *:not(.quizbar) { display: none; }
+  details.qz1 .a > *:not(.quizbar):not(.zap) { display: none; }
   @media (prefers-color-scheme: dark) {
     body { background: #000; color: #e8e8e8; }
     #cnt { color: #8fb08f; }
@@ -120,6 +135,10 @@
     .kal-d.ma { background: #131a21; }
     .kal-d.ma .dn { color: #7d93a9; }
     .kal-d.ter { box-shadow: inset 0 0 0 1.5px #2b3a49; }
+    .qhint { color: #777; }
+    .qbtn { color: #8aa8c7; border-color: #2b3a49; }
+    .qbtn.dobrze { color: #8fb08f; border-color: #253025; }
+    .qbtn.powt { color: #c39a8d; border-color: #3a2d28; }
     .losuj {
       color: #8aa8c7; border-color: #2b3a49;
       background: rgba(15, 15, 15, 0.85);
@@ -210,17 +229,21 @@
 <details class='q' id='q18' data-num='18'><summary><span class='num'>18</span><span class='t'>Podstawowe narzędzia komunikacji werbalnej i niewerbalnej.</span><span class='dot' title='umiem'></span></summary><div class='a'><p>Komunikacja to przekazywanie informacji między ludźmi. Dzieli się na werbalną (słowa) i niewerbalną (wszystko poza słowami). Duża część przekazu to właśnie mowa ciała.</p><ul><li>Werbalna ustna: rozmowa, prezentacja, telefon. Werbalna pisemna: e-mail, raport, SMS.</li><li>W mowie liczy się też sposób mówienia: ton, głośność, tempo — to tzw. parajęzyk.</li><li>Niewerbalna: mimika (wyraz twarzy), gesty, postawa ciała, kontakt wzrokowy, dystans od rozmówcy, wygląd.</li><li>Sygnały niewerbalne mogą potwierdzać słowa albo im zaprzeczać — gdy się kłócą, ludzie wierzą raczej mowie ciała.</li></ul><p class='zap'><b>Zapamiętaj:</b> Werbalna = słowa (mowa i pismo). Niewerbalna = mimika, gesty, postawa, kontakt wzrokowy, ton głosu.</p><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
 <details class='q' id='q32' data-num='32'><summary><span class='num'>32</span><span class='t'>Style zarządzania.</span><span class='dot' title='umiem'></span></summary><div class='a'><p>Styl zarządzania to sposób, w jaki szef kieruje ludźmi i podejmuje decyzje. Klasyczny podział (Kurt Lewin) wyróżnia trzy style.</p><ul><li>Autokratyczny — szef decyduje sam i wydaje polecenia, nie pyta zespołu. Decyzje szybkie, ale ludzie bierni i niezadowoleni. Sprawdza się w kryzysie.</li><li>Demokratyczny — szef konsultuje się z zespołem, decyzje zapadają wspólnie. Ludzie bardziej zaangażowani, ale decyzje wolniejsze. Zwykle najskuteczniejszy.</li><li>Liberalny (leseferystyczny) — szef zostawia zespołowi wolną rękę i prawie nie ingeruje. Działa tylko przy samodzielnych specjalistach.</li><li>Dobry menedżer dopasowuje styl do sytuacji i zespołu (podejście sytuacyjne).</li></ul><p class='zap'><b>Zapamiętaj:</b> Trzy style (Lewin): autokratyczny (sam decyduję), demokratyczny (decydujemy razem), liberalny (róbcie sami).</p><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
 </div>
-<button class="losuj" id="losuj" type="button">Losuj pytanie</button>
+<div class="fabs">
+  <button class="losuj" id="losuj" type="button">Losuj pytanie</button>
+  <button class="losuj" id="przepytaj" type="button">Przepytaj mnie</button>
+</div>
 <script>
 (function () {
   // Postęp trzymany równolegle w localStorage, IndexedDB i haszu URL —
   // przy starcie wygrywa najnowszy zapis (iOS potrafi czyścić pojedyncze magazyny).
   // done = "umiem" (na stałe), read = "przejrzane dziś" (day mówi, którego dnia),
   // sDay+sCnt = seria nauki (ostatni dzień nauki i liczba dni z rzędu),
-  // hist = historia: ile pytań przejrzanych którego dnia (do kalendarza).
+  // hist = historia: ile pytań przejrzanych którego dnia (do kalendarza),
+  // qOk/qPow = samoocena z przepytywania ("umiałam" / "do powtórki").
   var KEY = "obrona-umiem";
   var all = Array.prototype.slice.call(document.querySelectorAll("details.q"));
-  var state = { t: 0, done: [], day: "", read: [], sDay: "", sCnt: 0, hist: {} };
+  var state = { t: 0, done: [], day: "", read: [], sDay: "", sCnt: 0, hist: {}, qOk: [], qPow: [] };
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function dstr(d) { return "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); }
@@ -241,7 +264,9 @@
       read: (v.read || []).map(String),
       sDay: v.sDay || "",
       sCnt: +v.sCnt || 0,
-      hist: hist
+      hist: hist,
+      qOk: (v.qOk || []).map(String),
+      qPow: (v.qPow || []).map(String)
     };
   }
   function parseStored(raw) {
@@ -267,6 +292,8 @@
         if (a[1]) hist[a[0]] = +a[1];
       });
     }
+    var o = h.match(/o=([0-9.]*)/);
+    var p = h.match(/p=([0-9.]*)/);
     return norm({
       t: t ? +t[1] : 1,
       done: u && u[1] ? u[1].split(".").filter(Boolean) : [],
@@ -274,7 +301,9 @@
       read: d && d[2] ? d[2].split(".").filter(Boolean) : [],
       sDay: s ? s[1] : "",
       sCnt: s ? +s[2] : 0,
-      hist: hist
+      hist: hist,
+      qOk: o && o[1] ? o[1].split(".").filter(Boolean) : [],
+      qPow: p && p[1] ? p[1].split(".").filter(Boolean) : []
     });
   }
   function consider(c) { if (c && c.t >= state.t) state = c; }
@@ -285,6 +314,17 @@
   }
   function streak() { // seria żyje, jeśli ostatnia nauka była dziś albo wczoraj
     return (state.sDay === today() || state.sDay === yesterday()) ? state.sCnt : 0;
+  }
+  function markRead(n) { // oznacz jako przejrzane dziś (bez zdejmowania)
+    newDay();
+    if (state.read.indexOf(n) < 0) {
+      state.read.push(n);
+      if (state.sDay !== today()) { // pierwsze przejrzane dziś podbija serię
+        state.sCnt = state.sDay === yesterday() ? state.sCnt + 1 : 1;
+        state.sDay = today();
+      }
+    }
+    state.hist[state.day] = state.read.length;
   }
 
   function idbOpen(cb) {
@@ -319,6 +359,8 @@
             "&d=" + state.day + (state.read.length ? "." + state.read.join(".") : "") +
             (state.sDay ? "&s=" + state.sDay + "." + state.sCnt : "") +
             (hk.length ? "&h=" + hk.map(function (k) { return k + "." + state.hist[k]; }).join("_") : "") +
+            (state.qOk.length ? "&o=" + state.qOk.join(".") : "") +
+            (state.qPow.length ? "&p=" + state.qPow.join(".") : "") +
             "&t=" + state.t;
     try { history.replaceState(null, "", h); }
     catch (e) { try { location.hash = h; } catch (e2) {} }
@@ -358,15 +400,11 @@
       var i = state.read.indexOf(n);
       if (i >= 0) {
         state.read.splice(i, 1);
+        if (state.read.length) state.hist[state.day] = state.read.length;
+        else delete state.hist[state.day];
       } else {
-        state.read.push(n);
-        if (state.sDay !== today()) { // pierwsze przejrzane dziś podbija serię
-          state.sCnt = state.sDay === yesterday() ? state.sCnt + 1 : 1;
-          state.sDay = today();
-        }
+        markRead(n);
       }
-      if (state.read.length) state.hist[state.day] = state.read.length;
-      else delete state.hist[state.day];
       save();
       refresh();
     });
@@ -374,6 +412,7 @@
 
   var losujBtn = document.getElementById("losuj");
   losujBtn.addEventListener("click", function () {
+    if (quizOn) quizExit();
     newDay();
     var dSet = {}, rSet = {};
     state.done.forEach(function (n) { dSet[n] = 1; });
@@ -390,6 +429,108 @@
     all.forEach(function (d) { if (d !== pick) d.open = false; });
     pick.open = true;
     pick.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  // tryb "Przepytaj mnie": pytanie bez odpowiedzi → (podpowiedź "Zapamiętaj") →
+  // pełna odpowiedź → samoocena; pytania "do powtórki" wracają z pierwszeństwem
+  var przepytajBtn = document.getElementById("przepytaj");
+  var quizOn = false, quizCur = null, quizStage = 0, quizLast = null;
+  var qbar = document.createElement("div");
+  qbar.className = "quizbar";
+
+  function rmFrom(arr, n) { var i = arr.indexOf(n); if (i >= 0) arr.splice(i, 1); }
+
+  function qbarRender() {
+    qbar.innerHTML = "";
+    function btn(txt, cls, fn) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "qbtn" + (cls ? " " + cls : "");
+      b.textContent = txt;
+      b.addEventListener("click", fn);
+      qbar.appendChild(b);
+    }
+    if (quizStage === 0) {
+      var hint = document.createElement("p");
+      hint.className = "qhint";
+      hint.textContent = "Odpowiedz na głos, potem sprawdź.";
+      qbar.appendChild(hint);
+      if (quizCur.querySelector(".a .zap")) {
+        btn("Podpowiedź", "", function () { quizStage = 1; quizApply(); });
+      }
+      btn("Pokaż odpowiedź", "", function () { quizStage = 2; quizApply(); });
+    } else if (quizStage === 1) {
+      btn("Pokaż odpowiedź", "", function () { quizStage = 2; quizApply(); });
+    } else {
+      btn("Umiałam ✓", "dobrze", function () { quizGrade(true); });
+      btn("Do powtórki", "powt", function () { quizGrade(false); });
+    }
+  }
+  function quizApply() {
+    quizCur.classList.toggle("qz0", quizStage === 0);
+    quizCur.classList.toggle("qz1", quizStage === 1);
+    qbarRender();
+  }
+  function quizPick() {
+    newDay();
+    var rSet = {}, ok = {}, pw = {};
+    state.read.forEach(function (n) { rSet[n] = 1; });
+    state.qOk.forEach(function (n) { ok[n] = 1; });
+    state.qPow.forEach(function (n) { pw[n] = 1; });
+    var fresh = all.filter(function (d) { return !rSet[d.dataset.num]; });
+    // najpierw powtórki, potem nigdy nieprzepytane, potem reszta nieprzejrzana dziś;
+    // gdy dzień skompletowany — dalej drążymy powtórki (bez powtarzania ostatniego)
+    var pool = fresh.filter(function (d) { return pw[d.dataset.num]; });
+    if (!pool.length) pool = fresh.filter(function (d) { var n = d.dataset.num; return !ok[n] && !pw[n]; });
+    if (!pool.length) pool = fresh;
+    if (!pool.length) pool = all.filter(function (d) { return pw[d.dataset.num] && d.dataset.num !== quizLast; });
+    if (!pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function quizShow(d) {
+    if (quizCur) quizCur.classList.remove("qz0", "qz1");
+    quizCur = d;
+    quizStage = 0;
+    all.forEach(function (x) { if (x !== d) x.open = false; });
+    d.querySelector(".a").appendChild(qbar);
+    d.open = true;
+    quizApply();
+    d.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function quizNext() {
+    var pick = quizPick();
+    if (!pick) {
+      quizExit();
+      przepytajBtn.textContent = "Na dziś komplet ✓";
+      setTimeout(function () { przepytajBtn.textContent = "Przepytaj mnie"; }, 1800);
+      return;
+    }
+    quizShow(pick);
+  }
+  function quizGrade(good) {
+    var n = quizCur.dataset.num;
+    rmFrom(state.qOk, n);
+    rmFrom(state.qPow, n);
+    (good ? state.qOk : state.qPow).push(n);
+    markRead(n); // przepytane = przejrzane dziś (licznik, seria, kalendarz)
+    save();
+    refresh();
+    quizLast = n;
+    quizCur.open = false;
+    quizNext();
+  }
+  function quizExit() {
+    quizOn = false;
+    if (quizCur) quizCur.classList.remove("qz0", "qz1");
+    if (qbar.parentNode) qbar.parentNode.removeChild(qbar);
+    quizCur = null;
+    przepytajBtn.textContent = "Przepytaj mnie";
+  }
+  przepytajBtn.addEventListener("click", function () {
+    if (quizOn) { quizExit(); return; }
+    quizOn = true;
+    przepytajBtn.textContent = "Zakończ";
+    quizNext();
   });
 
   // kalendarz historii: siatka miesiąca z liczbą pytań przejrzanych danego dnia
