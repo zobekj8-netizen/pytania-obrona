@@ -582,10 +582,26 @@
     renderKal();
   });
 
-  // po powrocie do apki następnego dnia wyzeruj licznik "dziś"
+  // automatyczna aktualizacja: przy powrocie do apki porównaj wersję z serwerem
+  // (etag/last-modified) i przeładuj, gdy jest nowsza — postęp zostaje w pamięci
+  var appVer = null;
+  function checkUpdate() {
+    if (location.protocol.indexOf("http") !== 0) return;
+    try {
+      fetch(location.href.split("#")[0], { cache: "no-store" }).then(function (r) {
+        var v = r.headers.get("etag") || r.headers.get("last-modified");
+        if (!v) return;
+        if (appVer === null) { appVer = v; return; }
+        if (v !== appVer) { appVer = v; location.reload(); }
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  // po powrocie do apki następnego dnia wyzeruj licznik "dziś" i sprawdź aktualizację
   document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) refresh();
+    if (!document.hidden) { refresh(); checkUpdate(); }
   });
+  checkUpdate();
 
   // wczytaj najnowszy zapis ze wszystkich źródeł
   try { consider(parseStored(localStorage.getItem(KEY))); } catch (e) {}

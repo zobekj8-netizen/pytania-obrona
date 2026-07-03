@@ -6,10 +6,14 @@ self.addEventListener("install", function (e) {
 self.addEventListener("activate", function (e) {
   e.waitUntil(self.clients.claim());
 });
-// najpierw siec (zeby aktualizacje wchodzily), przy braku internetu — kopia z cache
+// najpierw siec (zeby aktualizacje wchodzily), przy braku internetu — kopia z cache;
+// nawigacja z pominieciem cache HTTP (GitHub Pages trzyma stara wersje do 10 min)
 self.addEventListener("fetch", function (e) {
+  var zapyt = e.request.mode === "navigate"
+    ? fetch(e.request.url, { cache: "no-store" })
+    : fetch(e.request);
   e.respondWith(
-    fetch(e.request).then(function (r) {
+    zapyt.then(function (r) {
       var copy = r.clone();
       caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
       return r;
