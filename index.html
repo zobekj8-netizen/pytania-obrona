@@ -117,6 +117,23 @@
   .qbtn.powt { color: #a5766a; border-color: #e2d1cb; }
   details.qz0 .a > *:not(.quizbar) { display: none; }
   details.qz1 .a > *:not(.quizbar):not(.zap) { display: none; }
+  .qtrans {
+    width: 100%; font: inherit; font-size: 14px; line-height: 1.5; color: #555;
+    background: #f6f6f6; border: none; border-radius: 10px;
+    padding: 10px 12px; margin: 0 0 2px; resize: none;
+  }
+  .qtrans:focus { outline: 1.5px solid #ccd9e4; }
+  .qbtn.nagr .kropka { color: #b3564a; animation: puls 1.2s infinite; }
+  @keyframes puls { 50% { opacity: 0.35; } }
+  .qwynik { width: 100%; font-size: 14px; line-height: 1.5; margin: 0 0 2px; }
+  .qwynik .qtwoja { color: #999; margin: 0 0 8px; }
+  .qwynik .qocena { margin: 0 0 8px; color: #333; }
+  .qwynik .chip {
+    display: inline-block; font-size: 13px; padding: 4px 10px;
+    border-radius: 999px; margin: 0 5px 5px 0;
+    background: #eef3f8; color: #52749a;
+  }
+  .qwynik .chip.brak { background: #f4f4f4; color: #b3b3b3; }
   @media (prefers-color-scheme: dark) {
     body { background: #000; color: #e8e8e8; }
     #cnt { color: #8fb08f; }
@@ -139,6 +156,13 @@
     .qbtn { color: #8aa8c7; border-color: #2b3a49; }
     .qbtn.dobrze { color: #8fb08f; border-color: #253025; }
     .qbtn.powt { color: #c39a8d; border-color: #3a2d28; }
+    .qtrans { background: #141414; color: #b3b3b3; }
+    .qtrans:focus { outline-color: #2b3a49; }
+    .qbtn.nagr .kropka { color: #c96f60; }
+    .qwynik .qtwoja { color: #777; }
+    .qwynik .qocena { color: #c8c8c8; }
+    .qwynik .chip { background: #131a21; color: #8aa8c7; }
+    .qwynik .chip.brak { background: #161616; color: #555; }
     .losuj {
       color: #8aa8c7; border-color: #2b3a49;
       background: rgba(15, 15, 15, 0.85);
@@ -240,10 +264,12 @@
   // done = "umiem" (na stałe), read = "przejrzane dziś" (day mówi, którego dnia),
   // sDay+sCnt = seria nauki (ostatni dzień nauki i liczba dni z rzędu),
   // hist = historia: ile pytań przejrzanych którego dnia (do kalendarza),
-  // qOk/qPow = samoocena z przepytywania ("umiałam" / "do powtórki").
+  // qOk/qPow = samoocena z przepytywania ("umiałam" / "do powtórki"),
+  // seen = kiedykolwiek przejrzane (tylko z nich losuje przepytywanie),
+  // qDn = przepytane dziś (zeruje się z nowym dniem jak read).
   var KEY = "obrona-umiem";
   var all = Array.prototype.slice.call(document.querySelectorAll("details.q"));
-  var state = { t: 0, done: [], day: "", read: [], sDay: "", sCnt: 0, hist: {}, qOk: [], qPow: [] };
+  var state = { t: 0, done: [], day: "", read: [], sDay: "", sCnt: 0, hist: {}, qOk: [], qPow: [], seen: [], qDn: [] };
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function dstr(d) { return "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); }
@@ -257,6 +283,10 @@
         if (/^\d{8}$/.test(k) && +v.hist[k] > 0) hist[k] = +v.hist[k];
       }
     }
+    // seen uzupełniane z read/qOk/qPow — migracja zapisów sprzed tego pola
+    var sSet = {};
+    (v.seen || []).concat(v.read || [], v.qOk || [], v.qPow || [])
+      .forEach(function (n) { sSet[String(n)] = 1; });
     return {
       t: v.t || 1,
       done: (v.done || []).map(String),
@@ -266,7 +296,9 @@
       sCnt: +v.sCnt || 0,
       hist: hist,
       qOk: (v.qOk || []).map(String),
-      qPow: (v.qPow || []).map(String)
+      qPow: (v.qPow || []).map(String),
+      seen: Object.keys(sSet),
+      qDn: (v.qDn || []).map(String)
     };
   }
   function parseStored(raw) {
@@ -294,6 +326,8 @@
     }
     var o = h.match(/o=([0-9.]*)/);
     var p = h.match(/p=([0-9.]*)/);
+    var z = h.match(/z=([0-9.]*)/);
+    var q = h.match(/q=([0-9.]*)/);
     return norm({
       t: t ? +t[1] : 1,
       done: u && u[1] ? u[1].split(".").filter(Boolean) : [],
@@ -303,14 +337,16 @@
       sCnt: s ? +s[2] : 0,
       hist: hist,
       qOk: o && o[1] ? o[1].split(".").filter(Boolean) : [],
-      qPow: p && p[1] ? p[1].split(".").filter(Boolean) : []
+      qPow: p && p[1] ? p[1].split(".").filter(Boolean) : [],
+      seen: z && z[1] ? z[1].split(".").filter(Boolean) : [],
+      qDn: q && q[1] ? q[1].split(".").filter(Boolean) : []
     });
   }
   function consider(c) { if (c && c.t >= state.t) state = c; }
 
-  function newDay() { // nowy dzień = lista "przejrzane dziś" startuje od zera
+  function newDay() { // nowy dzień = listy "przejrzane dziś" i "przepytane dziś" startują od zera
     if (state.day && state.read.length) state.hist[state.day] = state.read.length; // dopisz do historii
-    if (state.day !== today()) { state.day = today(); state.read = []; }
+    if (state.day !== today()) { state.day = today(); state.read = []; state.qDn = []; }
   }
   function streak() { // seria żyje, jeśli ostatnia nauka była dziś albo wczoraj
     return (state.sDay === today() || state.sDay === yesterday()) ? state.sCnt : 0;
@@ -324,6 +360,7 @@
         state.sDay = today();
       }
     }
+    if (state.seen.indexOf(n) < 0) state.seen.push(n);
     state.hist[state.day] = state.read.length;
   }
 
@@ -361,6 +398,8 @@
             (hk.length ? "&h=" + hk.map(function (k) { return k + "." + state.hist[k]; }).join("_") : "") +
             (state.qOk.length ? "&o=" + state.qOk.join(".") : "") +
             (state.qPow.length ? "&p=" + state.qPow.join(".") : "") +
+            (state.seen.length ? "&z=" + state.seen.join(".") : "") +
+            (state.qDn.length ? "&q=" + state.qDn.join(".") : "") +
             "&t=" + state.t;
     try { history.replaceState(null, "", h); }
     catch (e) { try { location.hash = h; } catch (e2) {} }
@@ -440,55 +479,215 @@
 
   function rmFrom(arr, n) { var i = arr.indexOf(n); if (i >= 0) arr.splice(i, 1); }
 
+  // odpowiadanie na głos: transkrypcja przez wbudowane rozpoznawanie mowy,
+  // potem porównanie z hasłami z ramki "Zapamiętaj" (po rdzeniach słów,
+  // żeby odmiana nie przeszkadzała); bez mikrofonu — pole do dyktowania z klawiatury
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = null, recOn = false, recFinal = "", recInterim = "";
+  var pisz = false, piszInfo = "", quizOdp = null, transDiv = null;
+  var STOP = {}; // formy znormalizowane (bez polskich znaków)
+  ("jest byc sie czyli oraz albo lub przez przy tego jego jej ich ktora ktory ktore kiedy" +
+   " gdzie bardzo moze musi trzeba kazdy kazda kazde wszystko wszystkie miedzy zeby jako" +
+   " tylko takze rowniez wtedy potem najpierw zawsze inne inna inny czesto")
+    .split(" ").filter(Boolean).forEach(function (w) { STOP[w] = 1; });
+  function normSlowo(w) {
+    var MAPA = { "ą": "a", "ć": "c", "ę": "e", "ł": "l", "ń": "n", "ó": "o", "ś": "s", "ź": "z", "ż": "z" };
+    return w.toLowerCase().replace(/[ąćęłńóśźż]/g, function (z) { return MAPA[z]; });
+  }
+  function slowaTekstu(t) {
+    return t.split(/[^0-9A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+/)
+            .filter(Boolean).map(normSlowo);
+  }
+  function slowaKlucz(d) { // hasła z "Zapamiętaj" jako {slowo, rdzen}
+    var zap = d.querySelector(".a .zap");
+    if (!zap) return [];
+    var txt = zap.textContent.replace(/^\s*Zapamiętaj:\s*/i, "");
+    var seen = {}, out = [];
+    txt.split(/[^0-9A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż-]+/).forEach(function (w) {
+      w = w.replace(/^-+|-+$/g, "");
+      if (w.length < 4) return;
+      var n = normSlowo(w);
+      if (STOP[n]) return;
+      var k = n.slice(0, Math.min(6, n.length)); // rdzeń łagodzi odmianę
+      if (seen[k]) return;
+      seen[k] = 1;
+      out.push({ slowo: w, rdzen: k });
+    });
+    return out;
+  }
+  function ocenOdp(d, tekst) {
+    var klucze = slowaKlucz(d);
+    var slowa = slowaTekstu(tekst);
+    var traf = 0;
+    klucze.forEach(function (k) {
+      k.jest = slowa.some(function (w) { return w.slice(0, k.rdzen.length) === k.rdzen; });
+      if (k.jest) traf++;
+    });
+    return { klucze: klucze, traf: traf };
+  }
+  function recStop() {
+    recOn = false;
+    if (rec) { try { rec.stop(); } catch (e) {} rec = null; }
+  }
+  function recStart() {
+    recFinal = ""; recInterim = "";
+    rec = new SR();
+    rec.lang = "pl-PL";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = function (e) {
+      recInterim = "";
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) recFinal += e.results[i][0].transcript + " ";
+        else recInterim += e.results[i][0].transcript;
+      }
+      if (transDiv) transDiv.textContent = (recFinal + recInterim).trim() || "Słucham…";
+    };
+    rec.onend = function () { // iOS ucina po chwili ciszy — wznów, póki nagrywamy
+      if (recOn && rec) { try { rec.start(); } catch (e) {} }
+    };
+    rec.onerror = function (ev) {
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture") {
+        recStop();
+        pisz = true;
+        piszInfo = "Nie mogę użyć mikrofonu — wpisz odpowiedź albo podyktuj mikrofonem z klawiatury.";
+        if (quizOn) qbarRender();
+      }
+    };
+    recOn = true;
+    try { rec.start(); } catch (e) {}
+  }
+
   function qbarRender() {
     qbar.innerHTML = "";
+    transDiv = null;
     function btn(txt, cls, fn) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "qbtn" + (cls ? " " + cls : "");
-      b.textContent = txt;
+      if (cls === "nagr") b.innerHTML = "<span class='kropka'>●</span>&nbsp;";
+      b.appendChild(document.createTextNode(txt));
       b.addEventListener("click", fn);
       qbar.appendChild(b);
+      return b;
     }
-    if (quizStage === 0) {
-      var hint = document.createElement("p");
-      hint.className = "qhint";
-      hint.textContent = "Odpowiedz na głos, potem sprawdź.";
-      qbar.appendChild(hint);
-      if (quizCur.querySelector(".a .zap")) {
-        btn("Podpowiedź", "", function () { quizStage = 1; quizApply(); });
+    function hint(t) {
+      var p = document.createElement("p");
+      p.className = "qhint";
+      p.textContent = t;
+      qbar.appendChild(p);
+    }
+    if (quizStage === 0 || quizStage === 1) {
+      if (recOn) { // trwa nagrywanie
+        transDiv = document.createElement("div");
+        transDiv.className = "qtrans";
+        transDiv.textContent = (recFinal + recInterim).trim() || "Słucham…";
+        qbar.appendChild(transDiv);
+        btn("Zakończ i sprawdź", "nagr", function () {
+          recStop();
+          quizOdp = (recFinal + " " + recInterim).trim();
+          quizStage = 2;
+          quizApply();
+        });
+        btn("Anuluj", "", function () {
+          recStop();
+          recFinal = ""; recInterim = "";
+          quizApply();
+        });
+      } else if (pisz) { // awaryjnie: wpisz albo podyktuj z klawiatury
+        if (piszInfo) hint(piszInfo);
+        var ta = document.createElement("textarea");
+        ta.className = "qtrans";
+        ta.rows = 4;
+        ta.placeholder = "Wpisz lub podyktuj odpowiedź…";
+        qbar.appendChild(ta);
+        btn("Sprawdź", "", function () {
+          quizOdp = ta.value.trim();
+          quizStage = 2;
+          quizApply();
+        });
+        btn("Anuluj", "", function () { pisz = false; piszInfo = ""; quizApply(); });
+      } else {
+        btn("Odpowiedz na głos", "", function () {
+          if (SR) recStart(); else { pisz = true; piszInfo = ""; }
+          quizApply();
+        });
+        if (quizStage === 0 && quizCur.querySelector(".a .zap")) {
+          btn("Podpowiedź", "", function () { quizStage = 1; quizApply(); });
+        }
+        btn("Pokaż odpowiedź", "", function () { quizOdp = null; quizStage = 2; quizApply(); });
       }
-      btn("Pokaż odpowiedź", "", function () { quizStage = 2; quizApply(); });
-    } else if (quizStage === 1) {
-      btn("Pokaż odpowiedź", "", function () { quizStage = 2; quizApply(); });
     } else {
+      if (quizOdp !== null) qbar.appendChild(wynikOdp());
       btn("Umiałam ✓", "dobrze", function () { quizGrade(true); });
       btn("Do powtórki", "powt", function () { quizGrade(false); });
     }
+  }
+  function wynikOdp() { // porównanie wypowiedzi z hasłami "Zapamiętaj"
+    var box = document.createElement("div");
+    box.className = "qwynik";
+    if (!quizOdp) {
+      box.innerHTML = "<p class='qocena'>Nic nie usłyszałam — porównaj się z odpowiedzią poniżej.</p>";
+      return box;
+    }
+    var w = ocenOdp(quizCur, quizOdp);
+    var twoja = document.createElement("p");
+    twoja.className = "qtwoja";
+    twoja.textContent = "„" + quizOdp + "”";
+    box.appendChild(twoja);
+    var ocena = document.createElement("p");
+    ocena.className = "qocena";
+    var werdykt = !w.klucze.length ? "" :
+      w.traf / w.klucze.length >= 0.7 ? "Bardzo dobrze! " :
+      w.traf / w.klucze.length >= 0.4 ? "Nieźle — zobacz, czego zabrakło. " :
+      "Sporo umknęło — przeczytaj i spróbuj jutro jeszcze raz. ";
+    ocena.textContent = werdykt + "Kluczowe hasła: " + w.traf + " / " + w.klucze.length + ".";
+    box.appendChild(ocena);
+    var chipy = document.createElement("p");
+    chipy.style.margin = "0";
+    w.klucze.forEach(function (k) {
+      var c = document.createElement("span");
+      c.className = "chip" + (k.jest ? "" : " brak");
+      c.textContent = (k.jest ? "✓ " : "") + k.slowo;
+      chipy.appendChild(c);
+    });
+    box.appendChild(chipy);
+    return box;
   }
   function quizApply() {
     quizCur.classList.toggle("qz0", quizStage === 0);
     quizCur.classList.toggle("qz1", quizStage === 1);
     qbarRender();
   }
+  function quizBaza() { // przepytujemy tylko z pytań przejrzanych albo oznaczonych "umiem"
+    var zn = {};
+    state.seen.forEach(function (n) { zn[n] = 1; });
+    state.done.forEach(function (n) { zn[n] = 1; });
+    return all.filter(function (d) { return zn[d.dataset.num]; });
+  }
   function quizPick() {
     newDay();
-    var rSet = {}, ok = {}, pw = {};
-    state.read.forEach(function (n) { rSet[n] = 1; });
+    var qd = {}, ok = {}, pw = {};
+    state.qDn.forEach(function (n) { qd[n] = 1; });
     state.qOk.forEach(function (n) { ok[n] = 1; });
     state.qPow.forEach(function (n) { pw[n] = 1; });
-    var fresh = all.filter(function (d) { return !rSet[d.dataset.num]; });
-    // najpierw powtórki, potem nigdy nieprzepytane, potem reszta nieprzejrzana dziś;
+    var baza = quizBaza();
+    var wolne = baza.filter(function (d) { return !qd[d.dataset.num]; }); // nieprzepytane dziś
+    // najpierw powtórki, potem nigdy nieprzepytane, potem reszta;
     // gdy dzień skompletowany — dalej drążymy powtórki (bez powtarzania ostatniego)
-    var pool = fresh.filter(function (d) { return pw[d.dataset.num]; });
-    if (!pool.length) pool = fresh.filter(function (d) { var n = d.dataset.num; return !ok[n] && !pw[n]; });
-    if (!pool.length) pool = fresh;
-    if (!pool.length) pool = all.filter(function (d) { return pw[d.dataset.num] && d.dataset.num !== quizLast; });
+    var pool = wolne.filter(function (d) { return pw[d.dataset.num]; });
+    if (!pool.length) pool = wolne.filter(function (d) { var n = d.dataset.num; return !ok[n] && !pw[n]; });
+    if (!pool.length) pool = wolne;
+    if (!pool.length) pool = baza.filter(function (d) { return pw[d.dataset.num] && d.dataset.num !== quizLast; });
     if (!pool.length) return null;
     return pool[Math.floor(Math.random() * pool.length)];
   }
   function quizShow(d) {
     if (quizCur) quizCur.classList.remove("qz0", "qz1");
+    recStop();
+    recFinal = ""; recInterim = "";
+    quizOdp = null;
+    pisz = false; piszInfo = "";
     quizCur = d;
     quizStage = 0;
     all.forEach(function (x) { if (x !== d) x.open = false; });
@@ -501,8 +700,8 @@
     var pick = quizPick();
     if (!pick) {
       quizExit();
-      przepytajBtn.textContent = "Na dziś komplet ✓";
-      setTimeout(function () { przepytajBtn.textContent = "Przepytaj mnie"; }, 1800);
+      przepytajBtn.textContent = quizBaza().length ? "Na dziś komplet ✓" : "Najpierw przejrzyj pytania";
+      setTimeout(function () { przepytajBtn.textContent = "Przepytaj mnie"; }, 2200);
       return;
     }
     quizShow(pick);
@@ -513,6 +712,7 @@
     rmFrom(state.qPow, n);
     (good ? state.qOk : state.qPow).push(n);
     markRead(n); // przepytane = przejrzane dziś (licznik, seria, kalendarz)
+    if (state.qDn.indexOf(n) < 0) state.qDn.push(n);
     save();
     refresh();
     quizLast = n;
@@ -521,6 +721,8 @@
   }
   function quizExit() {
     quizOn = false;
+    recStop();
+    pisz = false; piszInfo = "";
     if (quizCur) quizCur.classList.remove("qz0", "qz1");
     if (qbar.parentNode) qbar.parentNode.removeChild(qbar);
     quizCur = null;
