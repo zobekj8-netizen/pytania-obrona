@@ -58,15 +58,23 @@
     color: #c0c0c0; font-size: 13px; min-width: 22px;
     font-variant-numeric: tabular-nums;
   }
-  .t { flex: 1; font-size: 16px; font-weight: 500; line-height: 1.4; }
+  .t { flex: 1; font-size: 16px; font-weight: 500; line-height: 1.4; -webkit-hyphens: auto; hyphens: auto; }
   .dot {
-    flex: none; align-self: center;
+    flex: none; align-self: center; position: relative;
     width: 19px; height: 19px; border-radius: 50%;
     border: 1.5px solid #d4d4d4;
   }
+  .dot::after { /* niewidoczne, większe pole dotyku */
+    content: ""; position: absolute;
+    top: -13px; left: -13px; right: -13px; bottom: -13px;
+  }
+  details.powt .t::before { /* z quizu: "do powtórki" */
+    content: "●"; color: #a5766a; font-size: 9px;
+    vertical-align: 2.5px; margin-right: 7px;
+  }
   details.done .dot { background: #86a386; border-color: #86a386; }
   details.done .t { color: #b3b3b3; }
-  .a { padding: 2px 0 20px 32px; font-size: 15.5px; line-height: 1.55; color: #333; }
+  .a { padding: 2px 0 20px 32px; font-size: 15.5px; line-height: 1.55; color: #333; -webkit-hyphens: auto; hyphens: auto; }
   .a p { margin: 0 0 10px; }
   .a ul { margin: 0 0 10px; padding-left: 17px; }
   .a li { margin: 0 0 7px; }
@@ -102,8 +110,12 @@
   .kal-d { padding: 4px 0 5px; border-radius: 9px; }
   .kal-d .dn { font-size: 12px; color: #999; font-variant-numeric: tabular-nums; }
   .kal-d .dc { font-size: 11.5px; font-weight: 600; color: #52749a; min-height: 15px; }
-  .kal-d.ma { background: #eef3f8; }
   .kal-d.ma .dn { color: #6b7f92; }
+  .kal-d.m1 { background: #eef3f8; } /* natężenie rośnie z liczbą pytań */
+  .kal-d.m2 { background: #dfe9f2; }
+  .kal-d.m3 { background: #cbdbea; }
+  .kal-d.m4 { background: #b5cbdf; }
+  .kal-d.m3 .dn, .kal-d.m4 .dn { color: #4d6478; }
   .kal-d.ter { box-shadow: inset 0 0 0 1.5px #ccd9e4; }
   .quizbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4px 0 2px; }
   .qhint { font-size: 13.5px; color: #999; width: 100%; margin: 0 0 4px; }
@@ -117,6 +129,8 @@
   .qbtn.powt { color: #a5766a; border-color: #e2d1cb; }
   details.qz0 .a > *:not(.quizbar) { display: none; }
   details.qz1 .a > *:not(.quizbar):not(.zap) { display: none; }
+  /* tryb skupienia: podczas przepytywania widać tylko bieżące pytanie */
+  body.quiz h2.sec, body.quiz details.q:not(.qcur), body.quiz #losuj { display: none; }
   .qtrans {
     width: 100%; font: inherit; font-size: 14px; line-height: 1.5; color: #555;
     background: #f6f6f6; border: none; border-radius: 10px;
@@ -149,9 +163,14 @@
     .kal-grid .dh { color: #555; }
     .kal-d .dn { color: #777; }
     .kal-d .dc { color: #8aa8c7; }
-    .kal-d.ma { background: #131a21; }
     .kal-d.ma .dn { color: #7d93a9; }
+    .kal-d.m1 { background: #131a21; }
+    .kal-d.m2 { background: #182430; }
+    .kal-d.m3 { background: #1e3040; }
+    .kal-d.m4 { background: #264055; }
+    .kal-d.m3 .dn, .kal-d.m4 .dn { color: #93aec6; }
     .kal-d.ter { box-shadow: inset 0 0 0 1.5px #2b3a49; }
+    details.powt .t::before { color: #c39a8d; }
     .qhint { color: #777; }
     .qbtn { color: #8aa8c7; border-color: #2b3a49; }
     .qbtn.dobrze { color: #8fb08f; border-color: #253025; }
@@ -407,12 +426,14 @@
 
   function refresh() {
     newDay();
-    var dSet = {}, rSet = {};
+    var dSet = {}, rSet = {}, pSet = {};
     state.done.forEach(function (n) { dSet[n] = 1; });
     state.read.forEach(function (n) { rSet[n] = 1; });
+    state.qPow.forEach(function (n) { pSet[n] = 1; });
     all.forEach(function (d) {
       d.classList.toggle("done", !!dSet[d.dataset.num]);
       d.classList.toggle("dzis", !!rSet[d.dataset.num]);
+      d.classList.toggle("powt", !!pSet[d.dataset.num]);
       d.querySelector(".przejrz").textContent =
         rSet[d.dataset.num] ? "Przejrzane dziś ✓" : "Przejrzane dziś";
     });
@@ -443,6 +464,7 @@
         else delete state.hist[state.day];
       } else {
         markRead(n);
+        if (!(quizOn && d === quizCur)) d.open = false; // odhaczone — zwiń
       }
       save();
       refresh();
@@ -473,7 +495,7 @@
   // tryb "Przepytaj mnie": pytanie bez odpowiedzi → (podpowiedź "Zapamiętaj") →
   // pełna odpowiedź → samoocena; pytania "do powtórki" wracają z pierwszeństwem
   var przepytajBtn = document.getElementById("przepytaj");
-  var quizOn = false, quizCur = null, quizStage = 0, quizLast = null;
+  var quizOn = false, quizCur = null, quizStage = 0, quizLast = null, quizNr = 0;
   var qbar = document.createElement("div");
   qbar.className = "quizbar";
 
@@ -578,6 +600,7 @@
       qbar.appendChild(p);
     }
     if (quizStage === 0 || quizStage === 1) {
+      hint("Pytanie " + quizNr + " w tej rundzie");
       if (recOn) { // trwa nagrywanie
         transDiv = document.createElement("div");
         transDiv.className = "qtrans";
@@ -683,13 +706,16 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
   function quizShow(d) {
-    if (quizCur) quizCur.classList.remove("qz0", "qz1");
+    if (quizCur) quizCur.classList.remove("qz0", "qz1", "qcur");
     recStop();
     recFinal = ""; recInterim = "";
     quizOdp = null;
     pisz = false; piszInfo = "";
     quizCur = d;
     quizStage = 0;
+    quizNr++;
+    document.body.classList.add("quiz"); // tryb skupienia
+    d.classList.add("qcur");
     all.forEach(function (x) { if (x !== d) x.open = false; });
     d.querySelector(".a").appendChild(qbar);
     d.open = true;
@@ -723,7 +749,8 @@
     quizOn = false;
     recStop();
     pisz = false; piszInfo = "";
-    if (quizCur) quizCur.classList.remove("qz0", "qz1");
+    document.body.classList.remove("quiz");
+    if (quizCur) quizCur.classList.remove("qz0", "qz1", "qcur");
     if (qbar.parentNode) qbar.parentNode.removeChild(qbar);
     quizCur = null;
     przepytajBtn.textContent = "Przepytaj mnie";
@@ -731,6 +758,7 @@
   przepytajBtn.addEventListener("click", function () {
     if (quizOn) { quizExit(); return; }
     quizOn = true;
+    quizNr = 0;
     przepytajBtn.textContent = "Zakończ";
     quizNext();
   });
@@ -763,8 +791,9 @@
     for (var d = 1; d <= dni; d++) {
       var key = "" + kalY + pad(kalM + 1) + pad(d);
       var c = state.hist[key] || 0;
+      var nat = c >= 10 ? 4 : c >= 6 ? 3 : c >= 3 ? 2 : c ? 1 : 0; // natężenie tła
       var cell = document.createElement("div");
-      cell.className = "kal-d" + (c ? " ma" : "") + (key === today() ? " ter" : "");
+      cell.className = "kal-d" + (nat ? " ma m" + nat : "") + (key === today() ? " ter" : "");
       cell.innerHTML = "<div class='dn'>" + d + "</div><div class='dc'>" + (c || "") + "</div>";
       grid.appendChild(cell);
     }
