@@ -85,6 +85,21 @@
   }
   .losuj:active { background: var(--press); }
   .tb-sep { width: 0.5px; height: 22px; background: var(--separator); }
+  .seg {
+    display: flex; background: var(--field); border-radius: 10px;
+    padding: 2px; margin: 10px 4px 0;
+  }
+  .seg-b {
+    flex: 1; font: inherit; font-size: 13.5px; font-weight: 600;
+    color: var(--secondary); background: none; border: none; border-radius: 8px;
+    padding: 7px 10px; cursor: pointer; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .seg-b.on {
+    color: var(--label); background: var(--card);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12), inset 0 0 0 0.5px var(--separator);
+  }
+  .tabnote { font-size: 13.5px; line-height: 1.45; color: var(--secondary); margin: -2px 0 12px; padding: 0 16px; }
   h2.sec {
     font-size: 13px; font-weight: 600; letter-spacing: 0.6px;
     text-transform: uppercase; color: var(--secondary);
@@ -196,7 +211,8 @@
   details.qz1 .a > *:not(.quizbar):not(.zap) { display: none; }
   /* tryb skupienia: podczas przepytywania widać tylko bieżące pytanie */
   body.quiz h2.sec, body.quiz details.q:not(.qcur), body.quiz #losuj,
-  body.quiz .tb-sep, body.quiz .chips, body.quiz .iconbtn, body.quiz .kal { display: none; }
+  body.quiz .tb-sep, body.quiz .chips, body.quiz .iconbtn, body.quiz .kal,
+  body.quiz .seg, body.quiz .tabnote { display: none; }
   body.quiz .group:not(:has(.qcur)) { display: none; }
   .qtrans {
     width: 100%; font: inherit; font-size: 14px; line-height: 1.5; color: var(--label);
@@ -228,7 +244,7 @@
       <button class="iconbtn" id="kalBtn" type="button" aria-label="Kalendarz"><svg width='17' height='17' viewBox='0 0 17 17' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round'><rect x='1.5' y='2.8' width='14' height='12.7' rx='3'/><line x1='1.5' y1='6.8' x2='15.5' y2='6.8'/><line x1='5' y1='1' x2='5' y2='3.6'/><line x1='12' y1='1' x2='12' y2='3.6'/><circle cx='5.4' cy='10' r='0.9' fill='currentColor' stroke='none'/><circle cx='8.5' cy='10' r='0.9' fill='currentColor' stroke='none'/><circle cx='11.6' cy='10' r='0.9' fill='currentColor' stroke='none'/><circle cx='5.4' cy='12.8' r='0.9' fill='currentColor' stroke='none'/><circle cx='8.5' cy='12.8' r='0.9' fill='currentColor' stroke='none'/></svg></button>
     </div>
     <div class="chips">
-      <span class="schip g"><span id="cnt">0</span>/50&nbsp;<small>umiem</small></span>
+      <span class="schip g"><span id="cnt">0</span>/<span id="tot">53</span>&nbsp;<small>umiem</small></span>
       <span class="schip b"><span id="dzis">0</span>&nbsp;<small>dziś</small></span>
       <span class="schip n"><span id="seria">0 dni</span>&nbsp;<small>serii</small></span>
     </div>
@@ -240,7 +256,12 @@
       </div>
       <div class="kal-grid" id="kalGrid"></div>
     </div>
+    <div class="seg" role="tablist">
+      <button class="seg-b on" type="button" role="tab" aria-selected="true" data-tab="egz">50 pytań</button>
+      <button class="seg-b" type="button" role="tab" aria-selected="false" data-tab="praca">Moja praca</button>
+    </div>
   </header>
+<div class="tab" id="tab-egz">
 <h2 class='sec'>Literatura angielska i amerykańska</h2>
 <div class='group'>
 <details class='q' id='q1' data-num='1'><summary><span class='num'>1</span><span class='t'>Angielska literatura renesansowa. Dramat elżbietański.</span><span class='dot' title='umiem'></span><span class='chev'></span></summary><div class='a'><p>Renesans w Anglii to mniej więcej XVI i początek XVII wieku, czyli czasy królowej Elżbiety I. Ludzie na nowo zachwycili się antykiem i samym człowiekiem — to się nazywa humanizm. W poezji pojawia się wtedy sonet. Najważniejsze jest jednak to, że to złoty wiek teatru.</p><ul><li>Powstają pierwsze stałe teatry w Londynie, m.in. słynny The Globe. Na sztuki chodzili wszyscy — od biedoty po szlachtę.</li><li>Najważniejszy autor to oczywiście William Shakespeare: pisał tragedie (Hamlet, Makbet, Otello), komedie i kroniki historyczne.</li><li>Inni ważni: Christopher Marlowe (Doctor Faustus) i Thomas Kyd (twórca tzw. tragedii zemsty).</li><li>Cechy dramatu: pisany białym wierszem (rytmiczny, ale bez rymów), monolog bohatera (soliloquy), mieszanie tragizmu z humorem.</li></ul><p class='zap'><b>Zapamiętaj:</b> Elżbieta I + Szekspir + teatr The Globe = epoka elżbietańska.</p><div class='wiaz'><span class='wlab'>Łączy się z</span><a class='qlink' href='#q6' data-cel='6'><span class='wnum'>6 ·</span> <span class='wtyt'>Tudorowie i Stuartowie</span> <span class='wcze'>— to czasy Elżbiety I z dynastii Tudorów</span></a></div><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
@@ -313,6 +334,16 @@
 <details class='q' id='q32' data-num='32'><summary><span class='num'>32</span><span class='t'>Style zarządzania.</span><span class='dot' title='umiem'></span><span class='chev'></span></summary><div class='a'><p>Styl zarządzania to sposób, w jaki szef kieruje ludźmi i podejmuje decyzje. Klasyczny podział (Kurt Lewin) wyróżnia trzy style.</p><ul><li>Autokratyczny — szef decyduje sam i wydaje polecenia, nie pyta zespołu. Decyzje szybkie, ale ludzie bierni i niezadowoleni. Sprawdza się w kryzysie.</li><li>Demokratyczny — szef konsultuje się z zespołem, decyzje zapadają wspólnie. Ludzie bardziej zaangażowani, ale decyzje wolniejsze. Zwykle najskuteczniejszy.</li><li>Liberalny (leseferystyczny) — szef zostawia zespołowi wolną rękę i prawie nie ingeruje. Działa tylko przy samodzielnych specjalistach.</li><li>Dobry menedżer dopasowuje styl do sytuacji i zespołu (podejście sytuacyjne).</li></ul><p class='zap'><b>Zapamiętaj:</b> Trzy style (Lewin): autokratyczny (sam decyduję), demokratyczny (decydujemy razem), liberalny (róbcie sami).</p><div class='wiaz'><span class='wlab'>Łączy się z</span><a class='qlink' href='#q9' data-cel='9'><span class='wnum'>9 ·</span> <span class='wtyt'>Funkcje zarządzania</span> <span class='wcze'>— to część szerszego tematu funkcji zarządzania</span></a></div><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
 </div>
 </div>
+<div class="tab" id="tab-praca" hidden>
+<h2 class='sec'>Obrona pracy — 3 zagadnienia</h2>
+<p class='tabnote'>Zagadnienia do pracy wysłane do promotora — każda odpowiedź na ok. 2 minuty mówienia.</p>
+<div class='group'>
+<details class='q' id='q51' data-num='51'><summary><span class='num'>51</span><span class='t'>Cancel culture — istota zjawiska i szczególna podatność branży modowej.</span><span class='dot' title='umiem'></span><span class='chev'></span></summary><div class='a'><p>Cancel culture to zbiorowe wycofywanie poparcia dla osoby, marki albo instytucji, która w oczach opinii publicznej naruszyła normy etyczne lub społeczne. Nie chodzi o samą krytykę — dochodzi żądanie konkretnych konsekwencji: bojkotu, zerwania umów, zmian personalnych. Termin spopularyzował tzw. Black Twitter ok. 2015 r., a do głównego nurtu wszedł z ruchem #MeToo (2017).</p><ul><li>W pracy opisuję trzy mechanizmy: lawinowe rozprzestrzenianie treści, hashtagi koordynujące akcję (jak #BoycottBalenciaga) i presję na podmioty trzecie — sponsorów, ambasadorów, platformy sprzedażowe.</li><li>Rzecz kluczowa: te mechanizmy działają niezależnie od tego, czy zarzut jest słuszny. Marka odpowiada na to, jak sytuację widzą odbiorcy, a nie na fakty w sensie prawnym.</li><li>Moda jest szczególnie podatna, bo marka odzieżowa jest jednocześnie produktem i symbolem tożsamości — kupując ubranie, kupujemy też wartości. Krzywdząca kampania to w oczach odbiorców nie wpadka marketingowa, tylko zdrada deklarowanych wartości.</li><li>Kampanie modowe są wizualne i emocjonalne, więc kontrowersyjne zdjęcie rozchodzi się dużo szybciej niż np. kontrowersyjny raport finansowy.</li><li>Przebieg zależy od kultury: na Zachodzie mobilizacja moralno-społeczna (rasizm, dyskryminacja), w Chinach nacjonalizm konsumencki — obrona godności narodowej (kryzys Dolce &amp; Gabbana).</li></ul><p class='zap'><b>Zapamiętaj:</b> Wycofanie poparcia + żądanie konsekwencji; działa zbiorowo przez hashtagi, także na podmioty trzecie; liczy się percepcja, nie fakty. Moda = produkt + symbol tożsamości → wpadka to zdrada wartości. Zachód — mobilizacja moralna, Chiny — nacjonalizm konsumencki.</p><div class='wiaz'><span class='wlab'>Łączy się z</span><a class='qlink' href='#q52' data-cel='52'><span class='wnum'>52 ·</span> <span class='wtyt'>Teorie Coombsa i Benoita</span> <span class='wcze'>— teorie tłumaczą, jak marki powinny reagować na taki kryzys</span></a><a class='qlink' href='#q53' data-cel='53'><span class='wnum'>53 ·</span> <span class='wtyt'>Komunikacja kryzysowa w social mediach</span> <span class='wcze'>— cancel culture rozgrywa się właśnie tam</span></a></div><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
+<details class='q' id='q52' data-num='52'><summary><span class='num'>52</span><span class='t'>Teorie Coombsa (SCCT) i Benoita (IRT) oraz powody połączenia obu w pracy.</span><span class='dot' title='umiem'></span><span class='chev'></span></summary><div class='a'><p>W pracy korzystam z dwóch teorii, bo każda odpowiada na inne pytanie.</p><ul><li>Coombs (SCCT): skuteczność reakcji zależy od dopasowania strategii do typu kryzysu. Punkt wyjścia to, jak mocno opinia publiczna przypisuje marce winę. Trzy klastry: ofiary (organizacja sama poszkodowana, np. plotki), wypadku (błędy niezamierzone) i możliwy do zapobiegania (świadome działania lub zaniedbania — wina najwyższa).</li><li>Zasada SCCT: im większa wina w oczach odbiorców, tym bardziej przepraszająca musi być reakcja. Zaprzeczanie przy oczywistej winie tylko pogarsza kryzys.</li><li>Benoit (IRT) patrzy na sam komunikat: pięć strategii — dwie defensywne (zaprzeczenie, unikanie odpowiedzialności) i trzy łagodzące (zmniejszanie szkodliwości, działania naprawcze, skrucha). Można je łączyć, ale muszą być spójne.</li><li>Dlaczego obie? Uzupełniają się: Benoit daje narzędzie do rozpoznania, co marka robi w komunikacie, ale nie mówi, czy to dobry wybór. Coombs daje kryterium oceny — czy strategia pasuje do poziomu przypisywanej winy. Krótko: IRT identyfikuje strategię, SCCT ją ocenia.</li><li>Przykład: u Dolce &amp; Gabbana Benoit pokazał sprzeczność (najpierw zaprzeczenie — „zhakowane konta”, dwa dni później skrucha), a SCCT wyjaśniła, czemu to zawiodło: wszystkie trzy badane kryzysy należały do klastra możliwego do zapobiegania, gdzie strategie obronne są z góry skazane na porażkę.</li></ul><p class='zap'><b>Zapamiętaj:</b> Coombs (SCCT) — trzy klastry według przypisywanej winy; im większa wina, tym bardziej przepraszająca reakcja. Benoit (IRT) — pięć strategii komunikatu, od zaprzeczenia po skruchę; łączyć spójnie. Razem: Benoit identyfikuje, Coombs ocenia (D&amp;G: sprzeczność + klaster preventable = przewidywalna porażka).</p><div class='wiaz'><span class='wlab'>Łączy się z</span><a class='qlink' href='#q51' data-cel='51'><span class='wnum'>51 ·</span> <span class='wtyt'>Cancel culture</span> <span class='wcze'>— to kryzysy, do których stosuję obie teorie</span></a><a class='qlink' href='#q53' data-cel='53'><span class='wnum'>53 ·</span> <span class='wtyt'>Komunikacja kryzysowa w social mediach</span> <span class='wcze'>— tam widać strategie w praktyce (H&amp;M, D&amp;G)</span></a></div><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
+<details class='q' id='q53' data-num='53'><summary><span class='num'>53</span><span class='t'>Specyfika komunikacji kryzysowej w mediach społecznościowych — kanały, formaty i ton wypowiedzi.</span><span class='dot' title='umiem'></span><span class='chev'></span></summary><div class='a'><p>Media społecznościowe zmieniły komunikację kryzysową w trzech wymiarach: czasu, charakteru komunikatu i wymagań wobec spójności.</p><ul><li>Czas: okno decyzyjne skróciło się z dni do godzin, bo mobilizacja konsumencka narasta w godzinach. Klasyczna procedura (sztab, stanowisko, prawnicy) jest za wolna. Badania pokazują, że sztywne korporacyjne oświadczenia w pierwszej fazie wręcz eskalowały kryzys, a szybkie i autentyczne odpowiedzi go wygaszały.</li><li>Dialog zamiast monologu: post na Instagramie otwiera dyskusję — ludzie komentują i oceniają na bieżąco, więc publikacja przeprosin nie kończy kryzysu, tylko zaczyna kolejny etap. Wszystko jest archiwizowane: ciche usunięcie treści daje efekt Streisand.</li><li>Kanał nie jest neutralny: Twitter/X sprzyja krótkim tekstom i wirusowej krytyce, Instagram jest wizualny, TikTok narzuca wideo i emocje — to tam parodie marek zdobywają największe zasięgi.</li><li>Format: oświadczenie tekstowe to najczęstsza pierwsza reakcja, ale ma słabą siłę emocjonalną; wideo buduje autentyczność, o ile nie wygląda na wyuczone; przeprosiny na Stories (znikają po dobie) mogą być odebrane jako bagatelizowanie problemu.</li><li>Ton: defensywny („to nie nasza wina”) podnosi przypisywaną winę; empatyczny działa tylko poparty działaniem — przeprosiny H&amp;M zadziałały, bo w ciągu doby wycofano produkt. Do tego spójność między platformami: D&amp;G opublikowała zaprzeczenie na Instagramie, a przeprosiny na chińskim Weibo — odbiorcy odebrali to jako cynizm.</li></ul><p class='zap'><b>Zapamiętaj:</b> Czas — okno decyzyjne w godzinach; szybkie i autentyczne wygasza, korporacyjne eskaluje. Dialog — przeprosiny zaczynają rozmowę, nie kończą; usuwanie = efekt Streisand. Kanał, format, ton — Stories = bagatelizowanie; empatia tylko z działaniem (H&amp;M); niespójność między platformami = cynizm (D&amp;G).</p><div class='wiaz'><span class='wlab'>Łączy się z</span><a class='qlink' href='#q51' data-cel='51'><span class='wnum'>51 ·</span> <span class='wtyt'>Cancel culture</span> <span class='wcze'>— mechanizmy cancel culture wymuszają tę specyfikę</span></a><a class='qlink' href='#q52' data-cel='52'><span class='wnum'>52 ·</span> <span class='wtyt'>Teorie Coombsa i Benoita</span> <span class='wcze'>— ton i strategia komunikatu wprost z tych teorii</span></a></div><button class='przejrz' type='button'>Przejrzane dziś</button></div></details>
+</div>
+</div>
+</div>
 <div class="fabs">
   <button class="losuj" id="losuj" type="button">Losuj pytanie</button>
   <span class="tb-sep"></span>
@@ -331,6 +362,24 @@
   var KEY = "obrona-umiem";
   var all = Array.prototype.slice.call(document.querySelectorAll("details.q"));
   var state = { t: 0, done: [], day: "", read: [], sDay: "", sCnt: 0, hist: {}, qOk: [], qPow: [], seen: [], qDn: [] };
+  document.getElementById("tot").textContent = all.length;
+
+  // zakładki: 50 pytań egzaminacyjnych / zagadnienia do pracy dyplomowej
+  var tabPraca = document.getElementById("tab-praca");
+  var segBtns = Array.prototype.slice.call(document.querySelectorAll(".seg-b"));
+  function pokazTab(name) {
+    document.getElementById("tab-egz").hidden = name !== "egz";
+    tabPraca.hidden = name !== "praca";
+    segBtns.forEach(function (b) {
+      var on = b.dataset.tab === name;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+  segBtns.forEach(function (b) {
+    b.addEventListener("click", function () { pokazTab(b.dataset.tab); });
+  });
+  function pokazTabZ(d) { pokazTab(tabPraca.contains(d) ? "praca" : "egz"); }
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function dstr(d) { return "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); }
@@ -530,6 +579,7 @@
     }
     var pick = pool[Math.floor(Math.random() * pool.length)];
     all.forEach(function (d) { if (d !== pick) d.open = false; });
+    pokazTabZ(pick);
     pick.open = true;
     pick.scrollIntoView({ behavior: "smooth", block: "start" });
   });
@@ -539,6 +589,7 @@
     var cel = document.getElementById("q" + num);
     if (!cel) return;
     all.forEach(function (d) { if (d !== cel) d.open = false; });
+    pokazTabZ(cel);
     cel.open = true;
     cel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -792,6 +843,7 @@
     quizNr++;
     document.body.classList.add("quiz"); // tryb skupienia
     d.classList.add("qcur");
+    pokazTabZ(d);
     all.forEach(function (x) { if (x !== d) x.open = false; });
     d.querySelector(".a").appendChild(qbar);
     d.open = true;
